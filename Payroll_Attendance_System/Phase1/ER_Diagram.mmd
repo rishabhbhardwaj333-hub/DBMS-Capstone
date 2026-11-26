@@ -1,0 +1,128 @@
+erDiagram
+    DEPARTMENTS ||--o{ EMPLOYEES : "employs"
+    EMPLOYEES ||--o| USER_ACCOUNTS : "has_account"
+    EMPLOYEES ||--o{ ATTENDANCE : "logs"
+    EMPLOYEES ||--o{ LEAVE_REQUESTS : "applies_for"
+    EMPLOYEES ||--o{ LEAVE_REQUESTS : "approves"
+    LEAVE_TYPES ||--o{ LEAVE_REQUESTS : "categorizes"
+    EMPLOYEES ||--o{ SALARIES : "assigned"
+    EMPLOYEES ||--o{ PAYROLL : "receives"
+    EMPLOYEES ||--o{ PAYROLL : "generates"
+    SALARIES ||--o{ PAYROLL : "basis_for"
+
+    DEPARTMENTS {
+        int department_id PK
+        varchar department_code UK
+        varchar department_name UK
+        varchar description
+        timestamp created_at
+    }
+
+    EMPLOYEES {
+        int employee_id PK
+        varchar emp_code UK
+        varchar first_name
+        varchar last_name
+        varchar email UK
+        varchar phone
+        int department_id FK
+        varchar designation
+        date hire_date
+        enum employment_status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_ACCOUNTS {
+        int user_id PK
+        int employee_id FK,UK
+        varchar username UK
+        varchar password_hash
+        enum role
+        boolean is_active
+        datetime last_login_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ATTENDANCE {
+        int attendance_id PK
+        int employee_id FK
+        date attendance_date
+        time check_in_time
+        time check_out_time
+        enum status
+        boolean is_late
+        smallint late_minutes
+        decimal work_hours
+        varchar remarks
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    LEAVE_TYPES {
+        int leave_type_id PK
+        varchar type_code UK
+        varchar type_name UK
+        boolean is_paid
+        smallint max_days_per_year
+        varchar description
+    }
+
+    LEAVE_REQUESTS {
+        int leave_id PK
+        int employee_id FK
+        int leave_type_id FK
+        date start_date
+        date end_date
+        decimal total_days
+        varchar reason
+        enum status
+        int approved_by FK
+        datetime approved_at
+        timestamp applied_at
+        timestamp updated_at
+    }
+
+    SALARIES {
+        int salary_id PK
+        int employee_id FK
+        decimal basic_salary
+        decimal hra
+        decimal da
+        decimal other_allowances
+        decimal pf_deduction
+        decimal professional_tax
+        date effective_from
+        date effective_to
+        boolean is_current
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PAYROLL {
+        int payroll_id PK
+        int employee_id FK
+        int salary_id FK
+        tinyint pay_month
+        smallint pay_year
+        tinyint working_days
+        decimal present_days
+        decimal paid_leave_days
+        decimal unpaid_leave_days
+        smallint late_count
+        decimal basic_earned
+        decimal allowances_earned
+        decimal gross_salary
+        decimal pf_deduction
+        decimal professional_tax
+        decimal income_tax
+        decimal leave_deduction
+        decimal total_deductions
+        decimal net_salary
+        enum payment_status
+        date payment_date
+        int generated_by FK
+        timestamp generated_at
+        timestamp updated_at
+    }

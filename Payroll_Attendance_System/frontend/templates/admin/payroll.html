@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Payroll Processing — NovaTech HR{% endblock %}
+{% block page_heading %}Payroll Processing{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-lg-7">
+        <div class="card-enterprise p-3 h-100">
+            <h6 class="fw-semibold mb-3">Run Monthly Payroll (<code>process_monthly_payroll</code>)</h6>
+            <form method="POST" action="{{ url_for('admin.process_payroll') }}" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Month</label>
+                    <input type="number" min="1" max="12" class="form-control form-control-sm" name="pay_month" value="{{ default_month }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Year</label>
+                    <input type="number" min="2000" max="2100" class="form-control form-control-sm" name="pay_year" value="{{ default_year }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Working Days</label>
+                    <input type="number" min="1" max="31" class="form-control form-control-sm" name="working_days" value="22" required>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-play-circle"></i> Run Payroll
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card-enterprise p-3 h-100">
+            <h6 class="fw-semibold mb-3">Filter &amp; Bulk Disbursement</h6>
+            <form method="GET" action="{{ url_for('admin.payroll') }}" class="row g-2 align-items-end mb-2">
+                <div class="col-4">
+                    <input type="number" min="1" max="12" class="form-control form-control-sm" name="month" value="{{ filter_month }}" placeholder="Month">
+                </div>
+                <div class="col-4">
+                    <input type="number" min="2000" max="2100" class="form-control form-control-sm" name="year" value="{{ filter_year }}" placeholder="Year">
+                </div>
+                <div class="col-4">
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">Filter</button>
+                </div>
+            </form>
+            <form method="POST" action="{{ url_for('admin.mark_month_paid') }}" class="row g-2">
+                <input type="hidden" name="pay_month" value="{{ default_month }}">
+                <input type="hidden" name="pay_year" value="{{ default_year }}">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success btn-sm w-100">
+                        <i class="bi bi-check2-all"></i> Mark {{ default_month | month_name }} {{ default_year }} as PAID
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card-enterprise p-3">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Employee</th>
+                    <th>Present / LOP</th>
+                    <th>Gross</th>
+                    <th>Tax (TDS)</th>
+                    <th>Total Deductions</th>
+                    <th>Net Salary</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in payroll_rows %}
+                <tr>
+                    <td>{{ p.pay_month | month_name }} {{ p.pay_year }}</td>
+                    <td>
+                        <div class="fw-medium">{{ p.emp_code }} — {{ p.employee_name }}</div>
+                        <small class="text-muted">{{ p.department_name }}</small>
+                    </td>
+                    <td>{{ p.present_days }} / {{ p.unpaid_leave_days }}d</td>
+                    <td>{{ p.gross_salary | inr }}</td>
+                    <td>{{ p.income_tax | inr }}</td>
+                    <td>{{ p.total_deductions | inr }}</td>
+                    <td class="fw-bold text-primary">{{ p.net_salary | inr }}</td>
+                    <td>
+                        <span class="badge text-bg-{{ 'success' if p.payment_status == 'PAID' else 'warning' }}">
+                            {{ p.payment_status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('employee.salary_slip', payroll_id=p.payroll_id) }}" class="btn btn-outline-secondary btn-sm">
+                            Slip
+                        </a>
+                        {% if p.payment_status == 'PROCESSED' %}
+                        <form method="POST" action="{{ url_for('admin.mark_single_paid', payroll_id=p.payroll_id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-success btn-sm">Mark Paid</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" class="text-center text-muted py-4">No payroll entries found for the selected filter.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

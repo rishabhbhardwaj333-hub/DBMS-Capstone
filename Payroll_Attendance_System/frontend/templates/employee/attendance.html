@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}My Attendance — NovaTech HR{% endblock %}
+{% block page_heading %}My Attendance History{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-sm-3"><div class="card-enterprise kpi-card"><div class="kpi-label">Present Days</div><div class="kpi-value text-success">{{ summary.present_days if summary else 0 }}</div></div></div>
+    <div class="col-sm-3"><div class="card-enterprise kpi-card"><div class="kpi-label">Absent Days</div><div class="kpi-value text-danger">{{ summary.absent_days if summary else 0 }}</div></div></div>
+    <div class="col-sm-3"><div class="card-enterprise kpi-card"><div class="kpi-label">Leave Days</div><div class="kpi-value text-info">{{ summary.leave_days if summary else 0 }}</div></div></div>
+    <div class="col-sm-3"><div class="card-enterprise kpi-card"><div class="kpi-label">Late Marks</div><div class="kpi-value text-warning">{{ summary.late_marks if summary else 0 }}</div></div></div>
+</div>
+
+<div class="card-enterprise p-3 mb-4">
+    <form method="GET" action="{{ url_for('employee.attendance') }}" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">Month</label>
+            <input type="number" min="1" max="12" class="form-control form-control-sm" name="month" value="{{ filter_month }}" placeholder="All Months">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">Year</label>
+            <input type="number" min="2000" max="2100" class="form-control form-control-sm" name="year" value="{{ filter_year }}" placeholder="All Years">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="{{ url_for('employee.attendance') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="card-enterprise p-3">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Date</th><th>Status</th><th>Check-In</th><th>Check-Out</th><th>Work Hours</th><th>Late</th><th>Remarks</th></tr>
+            </thead>
+            <tbody>
+                {% for a in history %}
+                <tr>
+                    <td>{{ a.attendance_date }}</td>
+                    <td><span class="badge text-bg-light border">{{ a.status }}</span></td>
+                    <td>{{ a.check_in_time or '—' }}</td>
+                    <td>{{ a.check_out_time or '—' }}</td>
+                    <td>{{ a.work_hours }} hrs</td>
+                    <td>{% if a.is_late %}<span class="badge text-bg-warning">+{{ a.late_minutes }}m</span>{% else %}No{% endif %}</td>
+                    <td>{{ a.remarks or '—' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No attendance entries found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

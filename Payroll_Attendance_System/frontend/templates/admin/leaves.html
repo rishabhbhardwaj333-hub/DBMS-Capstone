@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Leave Management — NovaTech HR{% endblock %}
+{% block page_heading %}Leave Management{% endblock %}
+
+{% block content %}
+<div class="card-enterprise p-3 mb-4 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+    <div class="btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('admin.leaves') }}" class="btn btn-{{ 'primary' if not selected_status else 'outline-primary' }}">All</a>
+        {% for st in ['PENDING', 'APPROVED', 'REJECTED'] %}
+        <a href="{{ url_for('admin.leaves', status=st) }}" class="btn btn-{{ 'primary' if selected_status == st else 'outline-primary' }}">{{ st }}</a>
+        {% endfor %}
+    </div>
+    <small class="text-muted">Approvals execute <code>approve_leave()</code> and DB overlap validation triggers.</small>
+</div>
+
+<div class="card-enterprise p-3">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>Period</th>
+                    <th>Days</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th class="text-end">Decision</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lr in leaves %}
+                <tr>
+                    <td>#{{ lr.leave_id }}</td>
+                    <td>
+                        <div class="fw-medium">{{ lr.emp_code }} — {{ lr.employee_name }}</div>
+                        <small class="text-muted">{{ lr.department_name }}</small>
+                    </td>
+                    <td>
+                        <span class="badge text-bg-light border">{{ lr.type_code }}</span>
+                        <small class="d-block text-muted">{{ 'Paid' if lr.is_paid else 'Unpaid (LOP)' }}</small>
+                    </td>
+                    <td>{{ lr.start_date }} → {{ lr.end_date }}</td>
+                    <td>{{ lr.total_days }}</td>
+                    <td>{{ lr.reason }}</td>
+                    <td>
+                        <span class="badge text-bg-{{ 'success' if lr.status == 'APPROVED' else ('warning' if lr.status == 'PENDING' else 'danger') }}">
+                            {{ lr.status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        {% if lr.status == 'PENDING' %}
+                        <form method="POST" action="{{ url_for('admin.leave_decision', leave_id=lr.leave_id) }}" class="d-inline">
+                            <input type="hidden" name="decision" value="APPROVED">
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.leave_decision', leave_id=lr.leave_id) }}" class="d-inline">
+                            <input type="hidden" name="decision" value="REJECTED">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Reject</button>
+                        </form>
+                        {% else %}
+                        <small class="text-muted">By {{ lr.approved_by_name or 'HR' }}</small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No leave requests found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

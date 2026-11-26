@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Reports — NovaTech HR{% endblock %}
+{% block page_heading %}Database Reports &amp; Analytics{% endblock %}
+
+{% block content %}
+<div class="card-enterprise p-3 mb-4 no-print">
+    <form method="GET" action="{{ url_for('admin.reports') }}" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold">Report Type</label>
+            <select class="form-select form-select-sm" name="type">
+                <option value="attendance_summary" {% if report_type == 'attendance_summary' %}selected{% endif %}>1. Monthly Attendance Summary</option>
+                <option value="late_marks" {% if report_type == 'late_marks' %}selected{% endif %}>2. Late Marks Report</option>
+                <option value="payroll_summary" {% if report_type == 'payroll_summary' %}selected{% endif %}>3. Monthly Payroll Summary</option>
+                <option value="attendance_history" {% if report_type == 'attendance_history' %}selected{% endif %}>4. Employee Attendance History</option>
+                <option value="leave_history" {% if report_type == 'leave_history' %}selected{% endif %}>5. Leave History Report</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">Month</label>
+            <input type="number" min="1" max="12" class="form-control form-control-sm" name="month" value="{{ month }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">Year</label>
+            <input type="number" min="2000" max="2100" class="form-control form-control-sm" name="year" value="{{ year }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">Employee (History)</label>
+            <select class="form-select form-select-sm" name="employee_id">
+                <option value="">All / Default</option>
+                {% for e in employees %}
+                <option value="{{ e.employee_id }}" {% if selected_emp == e.employee_id|string %}selected{% endif %}>
+                    {{ e.emp_code }} — {{ e.first_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Generate</button>
+            <a href="{{ url_for('admin.export_report_csv', type=report_type, month=month, year=year, employee_id=selected_emp) }}"
+               class="btn btn-outline-success btn-sm" title="Export CSV">
+                <i class="bi bi-filetype-csv"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card-enterprise p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-semibold mb-0 text-capitalize">{{ report_type.replace('_', ' ') }} ({{ month | month_name }} {{ year }})</h6>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm no-print">
+            <i class="bi bi-printer"></i> Print
+        </button>
+    </div>
+
+    {% if rows %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0">
+            <thead>
+                <tr>
+                    {% for col in rows[0].keys() %}
+                    <th>{{ col.replace('_', ' ') }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    {% for val in row.values() %}
+                    <td>{{ val if val is not none else '—' }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-4">No records matched the selected report parameters.</div>
+    {% endif %}
+</div>
+{% endblock %}

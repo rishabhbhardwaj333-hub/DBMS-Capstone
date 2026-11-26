@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — NovaTech HR{% endblock %}
+{% block page_heading %}HR &amp; Payroll Overview{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-4">
+        <div class="card-enterprise kpi-card d-flex justify-content-between align-items-center">
+            <div>
+                <div class="kpi-label">Total Active Employees</div>
+                <div class="kpi-value">{{ metrics.total_employees }}</div>
+            </div>
+            <div class="kpi-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+        <div class="card-enterprise kpi-card d-flex justify-content-between align-items-center">
+            <div>
+                <div class="kpi-label">Present Today</div>
+                <div class="kpi-value text-success">{{ metrics.present_today }}</div>
+            </div>
+            <div class="kpi-icon bg-success bg-opacity-10 text-success"><i class="bi bi-person-check-fill"></i></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+        <div class="card-enterprise kpi-card d-flex justify-content-between align-items-center">
+            <div>
+                <div class="kpi-label">Absent Today</div>
+                <div class="kpi-value text-danger">{{ metrics.absent_today }}</div>
+            </div>
+            <div class="kpi-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-person-x-fill"></i></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+        <div class="card-enterprise kpi-card d-flex justify-content-between align-items-center">
+            <div>
+                <div class="kpi-label">Pending Leave Requests</div>
+                <div class="kpi-value text-warning">{{ metrics.pending_leaves }}</div>
+            </div>
+            <div class="kpi-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-hourglass-split"></i></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+        <div class="card-enterprise kpi-card d-flex justify-content-between align-items-center">
+            <div>
+                <div class="kpi-label">Latest Payroll ({{ metrics.latest_payroll_label }})</div>
+                <div class="kpi-value">{{ metrics.current_month_payroll | inr }}</div>
+            </div>
+            <div class="kpi-icon bg-info bg-opacity-10 text-info"><i class="bi bi-currency-rupee"></i></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+        <div class="card-enterprise kpi-card d-flex justify-content-between align-items-center">
+            <div>
+                <div class="kpi-label">Month Attendance Rate</div>
+                <div class="kpi-value">{{ metrics.attendance_pct }}%</div>
+            </div>
+            <div class="kpi-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-graph-up-arrow"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card-enterprise p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-semibold mb-0">Monthly Payroll Expenditure</h6>
+                <a href="{{ url_for('admin.payroll') }}" class="btn btn-sm btn-outline-primary">Manage Payroll</a>
+            </div>
+            <div style="height: 280px;">
+                <canvas id="payrollChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card-enterprise p-3 h-100">
+            <h6 class="fw-semibold mb-3">Attendance Overview (30 Days)</h6>
+            <div style="height: 280px;">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-enterprise p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-semibold mb-0">Recent Leave Requests</h6>
+        <a href="{{ url_for('admin.leaves') }}" class="btn btn-sm btn-outline-secondary">Review All Leaves</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Type</th>
+                    <th>Dates</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lr in metrics.recent_leaves %}
+                <tr>
+                    <td class="fw-medium">{{ lr.employee_name }}</td>
+                    <td><span class="badge text-bg-light border">{{ lr.type_code }}</span></td>
+                    <td>{{ lr.start_date }} to {{ lr.end_date }}</td>
+                    <td>{{ lr.total_days }}</td>
+                    <td>
+                        <span class="badge text-bg-{{ 'success' if lr.status == 'APPROVED' else ('warning' if lr.status == 'PENDING' else 'danger') }}">
+                            {{ lr.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-3">No recent leave requests.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const payrollData = {{ metrics.payroll_trend | tojson }};
+const attData = {{ metrics.att_breakdown | tojson }};
+
+if (document.getElementById("payrollChart") && payrollData.length > 0) {
+    new Chart(document.getElementById("payrollChart"), {
+        type: "bar",
+        data: {
+            labels: payrollData.map(r => `${String(r.pay_month).padStart(2, "0")}/${r.pay_year}`),
+            datasets: [
+                { label: "Gross Salary", data: payrollData.map(r => Number(r.gross_total)), backgroundColor: "#3b82f6", borderRadius: 6 },
+                { label: "Net Payroll", data: payrollData.map(r => Number(r.net_total)), backgroundColor: "#10b981", borderRadius: 6 },
+                { label: "Deductions", data: payrollData.map(r => Number(r.deduction_total)), backgroundColor: "#f59e0b", borderRadius: 6 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } }
+        }
+    });
+}
+
+if (document.getElementById("attendanceChart") && attData.length > 0) {
+    new Chart(document.getElementById("attendanceChart"), {
+        type: "doughnut",
+        data: {
+            labels: attData.map(r => r.status),
+            datasets: [{
+                data: attData.map(r => Number(r.total)),
+                backgroundColor: ["#10b981", "#3b82f6", "#f59e0b", "#6366f1", "#ef4444"]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } }
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard — NovaTech HR{% endblock %}
+{% block page_heading %}Employee Self-Service Portal{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card-enterprise p-3 h-100">
+            <h6 class="fw-semibold mb-3"><i class="bi bi-person-circle me-2 text-primary"></i>My Profile</h6>
+            <table class="table table-sm table-borderless mb-0 small">
+                <tr><th class="text-muted" style="width:40%;">Employee Code</th><td class="fw-semibold">{{ profile.emp_code }}</td></tr>
+                <tr><th class="text-muted">Full Name</th><td class="fw-semibold">{{ profile.first_name }} {{ profile.last_name }}</td></tr>
+                <tr><th class="text-muted">Department</th><td>{{ profile.department_name }}</td></tr>
+                <tr><th class="text-muted">Designation</th><td>{{ profile.designation }}</td></tr>
+                <tr><th class="text-muted">Email</th><td>{{ profile.email }}</td></tr>
+                <tr><th class="text-muted">Phone</th><td>{{ profile.phone }}</td></tr>
+                <tr><th class="text-muted">Hire Date</th><td>{{ profile.hire_date }}</td></tr>
+                <tr><th class="text-muted">Status</th><td><span class="badge text-bg-success">{{ profile.employment_status }}</span></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="row g-3 h-100">
+            <div class="col-sm-6">
+                <div class="card-enterprise kpi-card">
+                    <div class="kpi-label">Present Days (This Month)</div>
+                    <div class="kpi-value text-success">{{ att_summary.present_days if att_summary else 0 }}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="card-enterprise kpi-card">
+                    <div class="kpi-label">Late Marks (This Month)</div>
+                    <div class="kpi-value text-warning">{{ att_summary.late_marks if att_summary else 0 }}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="card-enterprise kpi-card">
+                    <div class="kpi-label">Avg Work Hours</div>
+                    <div class="kpi-value">{{ att_summary.avg_work_hours if att_summary else 0 }} hrs</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="card-enterprise kpi-card">
+                    <div class="kpi-label">Latest Net Salary</div>
+                    <div class="kpi-value text-primary">
+                        {{ payslips[0].net_salary | inr if payslips else 'Pending' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card-enterprise p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-semibold mb-0">Leave Balances</h6>
+                <a href="{{ url_for('employee.leaves') }}" class="btn btn-sm btn-primary">Apply Leave</a>
+            </div>
+            <div class="row g-2">
+                {% for b in balances %}
+                <div class="col-sm-6">
+                    <div class="border rounded-3 p-2 bg-light">
+                        <div class="small fw-semibold">{{ b.type_name }} ({{ b.type_code }})</div>
+                        <div class="small text-muted">
+                            Used: <strong>{{ b.used_days }}</strong>
+                            {% if b.remaining_days is not none %}
+                                | Remaining: <strong class="text-primary">{{ b.remaining_days }}</strong>
+                            {% else %}
+                                | Unpaid (LOP)
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card-enterprise p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-semibold mb-0">Recent Salary Slips</h6>
+                <a href="{{ url_for('employee.salary') }}" class="btn btn-sm btn-outline-secondary">All Slips</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr><th>Period</th><th>Gross</th><th>Net Pay</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for p in payslips[:4] %}
+                        <tr>
+                            <td>{{ p.pay_month | month_name }} {{ p.pay_year }}</td>
+                            <td>{{ p.gross_salary | inr }}</td>
+                            <td class="fw-bold">{{ p.net_salary | inr }}</td>
+                            <td><span class="badge text-bg-{{ 'success' if p.payment_status == 'PAID' else 'warning' }}">{{ p.payment_status }}</span></td>
+                            <td class="text-end">
+                                <a href="{{ url_for('employee.salary_slip', payroll_id=p.payroll_id) }}" class="btn btn-outline-primary btn-sm">View</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No salary slips generated yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-enterprise p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-semibold mb-0">Recent Attendance</h6>
+        <a href="{{ url_for('employee.attendance') }}" class="btn btn-sm btn-outline-secondary">Full History</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Date</th><th>Status</th><th>Check-In</th><th>Check-Out</th><th>Hours</th><th>Late</th></tr>
+            </thead>
+            <tbody>
+                {% for a in recent_att %}
+                <tr>
+                    <td>{{ a.attendance_date }}</td>
+                    <td><span class="badge text-bg-light border">{{ a.status }}</span></td>
+                    <td>{{ a.check_in_time or '—' }}</td>
+                    <td>{{ a.check_out_time or '—' }}</td>
+                    <td>{{ a.work_hours }} hrs</td>
+                    <td>
+                        {% if a.is_late %}<span class="badge text-bg-warning">+{{ a.late_minutes }}m</span>{% else %}On Time{% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-3">No attendance records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

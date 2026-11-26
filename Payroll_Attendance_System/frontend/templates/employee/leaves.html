@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}My Leaves — NovaTech HR{% endblock %}
+{% block page_heading %}My Leave Balances &amp; Applications{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    {% for b in balances %}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card-enterprise kpi-card">
+            <div class="kpi-label">{{ b.type_name }} ({{ b.type_code }})</div>
+            <div class="kpi-value">{{ b.remaining_days if b.remaining_days is not none else 'Unpaid' }}</div>
+            <small class="text-muted">Used this year: {{ b.used_days }}</small>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card-enterprise p-3">
+            <h6 class="fw-semibold mb-3">Apply for Leave</h6>
+            <form method="POST" action="{{ url_for('employee.apply_leave') }}">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Leave Type</label>
+                    <select class="form-select" name="leave_type_id" required>
+                        {% for lt in leave_types %}
+                        <option value="{{ lt.leave_type_id }}">{{ lt.type_name }} ({{ 'Paid' if lt.is_paid else 'Unpaid' }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Start Date</label>
+                    <input type="date" class="form-control" id="leaveStartDate" name="start_date" value="{{ today_iso }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">End Date</label>
+                    <input type="date" class="form-control" id="leaveEndDate" name="end_date" value="{{ today_iso }}" required>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="isHalfDayCheck" name="is_half_day" value="1">
+                    <label class="form-check-label small" for="isHalfDayCheck">Half-day leave (0.5 day)</label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Reason</label>
+                    <textarea class="form-control" name="reason" rows="3" placeholder="Provide brief reason..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Submit Leave Request</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card-enterprise p-3">
+            <h6 class="fw-semibold mb-3">My Leave History</h6>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th>Reviewer</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for lr in leaves %}
+                        <tr>
+                            <td><span class="badge text-bg-light border">{{ lr.type_code }}</span></td>
+                            <td>{{ lr.start_date }} → {{ lr.end_date }}</td>
+                            <td>{{ lr.total_days }}</td>
+                            <td>{{ lr.reason }}</td>
+                            <td>
+                                <span class="badge text-bg-{{ 'success' if lr.status == 'APPROVED' else ('warning' if lr.status == 'PENDING' else 'danger') }}">
+                                    {{ lr.status }}
+                                </span>
+                            </td>
+                            <td>{{ lr.approved_by_name or '—' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center text-muted py-4">No leave applications submitted yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

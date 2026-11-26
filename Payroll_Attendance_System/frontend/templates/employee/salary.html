@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}My Salary &amp; Slips — NovaTech HR{% endblock %}
+{% block page_heading %}My Salary History &amp; Payslips{% endblock %}
+
+{% block content %}
+<div class="card-enterprise p-3 mb-4">
+    <h6 class="fw-semibold mb-3">Salary Structure History (Read-Only)</h6>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Effective From</th><th>Effective To</th><th>Basic</th><th>HRA</th><th>DA</th><th>Other</th><th>Gross</th><th>PF / PT</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for s in salaries %}
+                <tr>
+                    <td>{{ s.effective_from }}</td>
+                    <td>{{ s.effective_to or 'Present' }}</td>
+                    <td>{{ s.basic_salary | inr }}</td>
+                    <td>{{ s.hra | inr }}</td>
+                    <td>{{ s.da | inr }}</td>
+                    <td>{{ s.other_allowances | inr }}</td>
+                    <td class="fw-bold text-primary">{{ s.gross_salary | inr }}</td>
+                    <td>{{ s.pf_deduction | inr }} / {{ s.professional_tax | inr }}</td>
+                    <td><span class="badge text-bg-{{ 'success' if s.is_current else 'secondary' }}">{{ 'CURRENT' if s.is_current else 'ARCHIVED' }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" class="text-center text-muted py-3">No salary structure found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card-enterprise p-3">
+    <h6 class="fw-semibold mb-3">Monthly Salary Slips</h6>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Period</th><th>Present / LOP</th><th>Gross</th><th>Tax (TDS)</th><th>Total Deductions</th><th>Net Salary</th><th>Status</th><th class="text-end">Slip</th></tr>
+            </thead>
+            <tbody>
+                {% for p in payslips %}
+                <tr>
+                    <td>{{ p.pay_month | month_name }} {{ p.pay_year }}</td>
+                    <td>{{ p.present_days }} / {{ p.unpaid_leave_days }}d</td>
+                    <td>{{ p.gross_salary | inr }}</td>
+                    <td>{{ p.income_tax | inr }}</td>
+                    <td>{{ p.total_deductions | inr }}</td>
+                    <td class="fw-bold text-primary">{{ p.net_salary | inr }}</td>
+                    <td><span class="badge text-bg-{{ 'success' if p.payment_status == 'PAID' else 'warning' }}">{{ p.payment_status }}</span></td>
+                    <td class="text-end">
+                        <a href="{{ url_for('employee.salary_slip', payroll_id=p.payroll_id) }}" class="btn btn-outline-primary btn-sm">View</a>
+                        <a href="{{ url_for('employee.salary_slip', payroll_id=p.payroll_id, download=1) }}" class="btn btn-outline-success btn-sm">Download</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No salary slips available yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

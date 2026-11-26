@@ -1,0 +1,220 @@
+:root {
+    --sidebar-bg: #0f172a;
+    --sidebar-hover: #1e293b;
+    --sidebar-active: #2563eb;
+    --bg-light: #f4f6fa;
+    --card-border: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+/* Layout Shell */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    color: #e2e8f0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease;
+    z-index: 1030;
+}
+
+.sidebar-brand {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand h5 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.15rem;
+    color: #ffffff;
+}
+
+.sidebar-nav {
+    padding: 0.75rem;
+    flex: 1;
+}
+
+.sidebar-section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0.5rem 0.75rem 0.25rem;
+    font-weight: 600;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.62rem 0.85rem;
+    border-radius: 0.5rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+}
+
+.sidebar-link:hover {
+    background-color: var(--sidebar-hover);
+    color: #ffffff;
+}
+
+.sidebar-link.active {
+    background-color: var(--sidebar-active);
+    color: #ffffff;
+}
+
+.sidebar-footer {
+    padding: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.topbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--card-border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.page-body {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+/* Enterprise Cards & Tables */
+.card-enterprise {
+    background-color: #ffffff;
+    border: 1px solid var(--card-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.kpi-card {
+    padding: 1.15rem 1.25rem;
+    height: 100%;
+}
+
+.kpi-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+}
+
+.kpi-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.kpi-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.table thead th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--card-border);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+}
+
+/* Login Page */
+.login-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #1d4ed8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+    padding: 2rem;
+}
+
+/* Responsive Sidebar */
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+    }
+    .sidebar.show {
+        transform: translateX(0);
+    }
+}
+
+/* Print Styles for Salary Slip & Reports */
+@media print {
+    .sidebar, .topbar, .no-print {
+        display: none !important;
+    }
+    body, .main-content, .page-body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .card-enterprise {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+}
